@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Items List</h1>
+    <table id="itemsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>VIN</th>
+                <th>Fleet Operator</th>
+                <th>Start Time</th>
+                <th>Answered By</th>
+                <th>Answer Time</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+    <script src="assets/js/ws.js"></script>
+
+</body>
+</html>
