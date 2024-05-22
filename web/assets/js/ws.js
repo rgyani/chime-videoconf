@@ -16,25 +16,32 @@ async function fetchMeetings() {
 
     data.Items.forEach(item => {
         const row = document.createElement('tr');
-        row.innerHTML = `
-        <td>${item.id.S}</td>
-        <td>${item.started_by.S}</td>
-        <td>${item.fleet_operator.S}</td>
-        <td>${item.start_time.S}</td>
-        `;
-        if (item.hasOwnProperty('answered_by')){
-            row.innerHTML += `
-                                <td>${item.answered_by.S}</td>
-                                <td>${item.answer_time.S}</td>
-                                <td></td>
-                            `;
+        row.innerHTML = `<td>${item.id.S}</td>`;
+        row.innerHTML += `<td>${item.started_by.S}</td>`;
+        row.innerHTML += `<td>${item.fleet_operator.S}</td>`;
+        row.innerHTML += `<td>${item.start_time.S}</td>`;
+        
+        if (item.hasOwnProperty('end_time')){
+            row.innerHTML += `<td>${item.end_time.S}</td>`;
         }
         else{
-            row.innerHTML += `
-            <td></td>
-            <td></td>
-            <td><a target="_blank" href="${current_url.replace("operator", "index")}?meetingId=${item.id.S}">Join</a></td>
-        `;
+            row.innerHTML += `<td></td>`;
+        }
+
+        if (item.hasOwnProperty('answered_by')){
+            row.innerHTML += `<td>${item.answered_by.S}</td>`;
+            row.innerHTML += `<td>${item.answer_time.S}</td>`;
+            row.innerHTML += `<td></td>`;
+        }
+        else{
+            row.innerHTML += `<td></td>`;
+            row.innerHTML += `<td></td>`;
+            if (item.hasOwnProperty('end_time')){
+                row.innerHTML += `<td></td>`;
+            }
+            else{
+            row.innerHTML += `<td><a target="_blank" href="${current_url.replace("operator", "index")}?meetingId=${item.id.S}">Join</a></td>`;
+            }
         }
         tableBody.appendChild(row);
     });

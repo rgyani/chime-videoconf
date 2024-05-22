@@ -18,7 +18,8 @@ def lambda_handler(event, context):
     print(event)
     if event["detail"]["eventType"] == "chime:AttendeeJoined":
         add_attendee(event)
-
+    if event["detail"]["eventType"] == "chime:MeetingEnded":
+        meeting_ended(event)
 
 def add_attendee(event):
     meeting_id = event["detail"]["meetingId"]
@@ -37,7 +38,6 @@ def add_attendee(event):
         TableName=table_name,
         Key={
             "id": {"S": meeting_id},
-            "fleet_operator": {"S": fleet_operator}
         }
     )
 
@@ -49,7 +49,6 @@ def add_attendee(event):
             TableName=table_name,
             Key={
                 'id': {'S': meeting_id},
-                'fleet_operator': {"S": fleet_operator}
             },
             UpdateExpression='SET answer_time = :answer_time, answered_by = :answered_by',
             ExpressionAttributeValues={
@@ -68,6 +67,29 @@ def add_attendee(event):
             }
         )
 
+
+def meeting_ended(event):
+    meeting_id = event["detail"]["meetingId"]
+    event_time = event["time"]
+
+    print("meeting_id", meeting_id)
+    print("event_time", event_time)
+
+    print("End existing meeting")
+    dynamodb_client.update_item(
+        TableName=table_name,
+        Key={
+            'id': {'S': meeting_id},
+        },
+        UpdateExpression='SET end_time = :end_time',
+        ExpressionAttributeValues={
+            ':end_time': {'S': event_time},
+        }
+    )
+
+
+
+## just for testing from local
 
 def insert():
     meeting_id = "m1"
