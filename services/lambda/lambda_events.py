@@ -144,7 +144,7 @@ def meeting_ended(event):
         #     }
         # )
         mutation = """mutation MyMutation {
-                createMeeting(input: {id: "MEETING_ID", end_time: "END_TIME"}) {
+                endMeeting(input: {id: "MEETING_ID", end_time: "END_TIME"}) {
                     answer_time
                     answered_by
                     end_time
