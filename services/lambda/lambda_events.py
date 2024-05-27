@@ -76,16 +76,27 @@ def meeting_ended(event):
     print("event_time", event_time)
 
     print("End existing meeting")
-    dynamodb_client.update_item(
+    # we first check if the meeting already exists
+    response = dynamodb_client.get_item(
         TableName=table_name,
         Key={
-            'id': {'S': meeting_id},
-        },
-        UpdateExpression='SET end_time = :end_time',
-        ExpressionAttributeValues={
-            ':end_time': {'S': event_time},
+            "id": {"S": meeting_id},
         }
     )
+
+    # if new item, then it is a new meeting being started
+    # else the meeting has been answered by the operator
+    if "Item" in response:
+        dynamodb_client.update_item(
+            TableName=table_name,
+            Key={
+                'id': {'S': meeting_id},
+            },
+            UpdateExpression='SET end_time = :end_time',
+            ExpressionAttributeValues={
+                ':end_time': {'S': event_time},
+            }
+        )
 
 
 
