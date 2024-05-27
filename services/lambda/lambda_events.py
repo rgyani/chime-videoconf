@@ -9,9 +9,12 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 import uuid
+import requests
 
 dynamodb_client = boto3.client("dynamodb")
-table_name = "ravi-test-chime"  # os.environ["TABLE_NAME"]
+TABLE_NAME = "ravi-test-chime"  # os.environ["TABLE_NAME"]
+APPSYNC_API_ENDPOINT_URL = 'https://zndjfudjbjesrnmvedn2rvpoaa.appsync-api.eu-central-1.amazonaws.com/graphql'
+APPSYNC_API_KEY = 'da2-xy5anpjp35b67bwhlms4ym665m'
 
 
 def lambda_handler(event, context):
@@ -35,36 +38,77 @@ def add_attendee(event):
 
     # we first check if the meeting already exists
     response = dynamodb_client.get_item(
-        TableName=table_name,
+        TableName=TABLE_NAME,
         Key={
             "id": {"S": meeting_id},
-        }
+        },
+        AttributesToGet=[ 'id'],
     )
 
     # if new item, then it is a new meeting being started
     # else the meeting has been answered by the operator
     if "Item" in response:
         print("Join existing meeting")
-        dynamodb_client.update_item(
-            TableName=table_name,
-            Key={
-                'id': {'S': meeting_id},
-            },
-            UpdateExpression='SET answer_time = :answer_time, answered_by = :answered_by',
-            ExpressionAttributeValues={
-                ':answer_time': {'S': event_time},
-                ':answered_by': {'S': user_id},
-            })
+        # dynamodb_client.update_item(
+        #     TableName=TABLE_NAME,
+        #     Key={
+        #         'id': {'S': meeting_id},
+        #     },
+        #     UpdateExpression='SET answer_time = :answer_time, answered_by = :answered_by',
+        #     ExpressionAttributeValues={
+        #         ':answer_time': {'S': event_time},
+        #         ':answered_by': {'S': user_id},
+        #     })
+        mutation = """mutation MyMutation {
+                joinMeeting(input: {id: "MEETING_ID", answer_time: "ANSWER_TIME", answered_by: "ANSWERED_BY"}) {
+                    answer_time
+                    answered_by
+                    end_time
+                    fleet_operator
+                    id
+                    start_time
+                    started_by
+                }
+        }
+        """.replace("MEETING_ID", meeting_id).replace("ANSWER_TIME", event_time).replace("ANSWERED_BY", user_id)
+
+        session = requests.Session()
+        response = session.request(
+            url=APPSYNC_API_ENDPOINT_URL,
+            method='POST',
+            headers={'x-api-key': APPSYNC_API_KEY},
+            json={'query': mutation}
+        )
     else:
         print("New meeting")
-        dynamodb_client.put_item(
-            TableName=table_name,
-            Item={
-                "id": {"S": meeting_id},
-                "fleet_operator": {"S": fleet_operator},
-                "start_time": {"S": event_time},
-                "started_by": {"S": user_id}
-            }
+        # dynamodb_client.put_item(
+        #     TableName=TABLE_NAME,
+        #     Item={
+        #         "id": {"S": meeting_id},
+        #         "fleet_operator": {"S": fleet_operator},
+        #         "start_time": {"S": event_time},
+        #         "started_by": {"S": user_id}
+        #     }
+        # )
+        mutation = """mutation MyMutation {
+                createMeeting(input: {id: "MEETING_ID", fleet_operator: "FLEET_OPERATOR", start_time: "START_TIME", started_by: "STARTED_BY"}) {
+                    answer_time
+                    answered_by
+                    end_time
+                    fleet_operator
+                    id
+                    start_time
+                    started_by
+                }
+        }
+        """.replace("MEETING_ID", meeting_id).replace("FLEET_OPERATOR", fleet_operator).replace("START_TIME", event_time).replace("STARTED_BY", user_id)
+
+        session = requests.Session()
+        response = session.request(
+            url=APPSYNC_API_ENDPOINT_URL,
+            method='POST',
+            headers={'x-api-key': APPSYNC_API_KEY},
+            json={'query': mutation}
         )
 
 
@@ -78,26 +122,47 @@ def meeting_ended(event):
     print("End existing meeting")
     # we first check if the meeting already exists
     response = dynamodb_client.get_item(
-        TableName=table_name,
+        TableName=TABLE_NAME,
         Key={
             "id": {"S": meeting_id},
-        }
+        },
+        AttributesToGet=[ 'id'],
+
     )
 
     # if new item, then it is a new meeting being started
     # else the meeting has been answered by the operator
     if "Item" in response:
-        dynamodb_client.update_item(
-            TableName=table_name,
-            Key={
-                'id': {'S': meeting_id},
-            },
-            UpdateExpression='SET end_time = :end_time',
-            ExpressionAttributeValues={
-                ':end_time': {'S': event_time},
-            }
-        )
+        # dynamodb_client.update_item(
+        #     TableName=TABLE_NAME,
+        #     Key={
+        #         'id': {'S': meeting_id},
+        #     },
+        #     UpdateExpression='SET end_time = :end_time',
+        #     ExpressionAttributeValues={
+        #         ':end_time': {'S': event_time},
+        #     }
+        # )
+        mutation = """mutation MyMutation {
+                createMeeting(input: {id: "MEETING_ID", end_time: "END_TIME"}) {
+                    answer_time
+                    answered_by
+                    end_time
+                    fleet_operator
+                    id
+                    start_time
+                    started_by
+                }
+        }
+        """.replace("MEETING_ID", meeting_id).replace("END_TIME", event_time)
 
+        session = requests.Session()
+        response = session.request(
+            url=APPSYNC_API_ENDPOINT_URL,
+            method='POST',
+            headers={'x-api-key': APPSYNC_API_KEY},
+            json={'query': mutation}
+        )
 
 
 ## just for testing from local
@@ -154,7 +219,7 @@ def query():
     # }
 
     response = dynamodb_client.query(
-        TableName=table_name,
+        TableName=TABLE_NAME,
         IndexName="fleet_operator-start_time-index",
         KeyConditionExpression='fleet_operator = :operator AND start_time BETWEEN :from_time AND :to_time',
         ExpressionAttributeValues={
@@ -166,7 +231,7 @@ def query():
     print(response)
 
     dynamodb_resource = boto3.resource('dynamodb', region_name="eu-central-1")
-    table = dynamodb_resource.Table(table_name)
+    table = dynamodb_resource.Table(TABLE_NAME)
     response = table.query(
         IndexName="fleet_operator-start_time-index",
         KeyConditionExpression=Key('fleet_operator').eq('UBER') & Key('start_time').between('2024', '2025')

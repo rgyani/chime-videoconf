@@ -1,44 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Data Table</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<script src="assets/js/amazon-chime-sdk.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="assets/css/vid.css" />
+    <title>Video Meet!</title>
+  </head>
 <body>
-    <h1>Items List</h1>
-    <table id="itemsTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>VIN</th>
-                <th>Fleet Operator</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Answered By</th>
-                <th>Answer Time</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Table rows will be inserted here by JavaScript -->
-        </tbody>
-    </table>
-    <script src="assets/js/ws.js"></script>
-
+		<div style="width: 100%;  text-align:center; margin: 0 auto;">
+			<label id="lblTitle" style="color:blueviolet;font-size: 50px;font-weight: bold;align-items: center;">From Operator</label>
+		</div>
+		<audio style="display: none" id="meeting-audio"></audio>
+		<div style="width: 100%;  text-align:center; margin: 0 auto;">
+			<label id="lblUser">Operator: </label> <input id="username" name="username" type="text" value=""/>
+			<button type="button" id="start-button">Join Meeting</button>
+			<button type="button" id="exit-button">Exit Meeting</button>
+		</div>
+		<br>
+		<b style="color:blueviolet;">Meeting Id:</b> <label id="meeting-Id"></label><br>
+        <b style="color:blueviolet;">Meeting Link:</b> <label id="meeting-link"></label><br>
+		<b style="color:blueviolet;">Attendees:</b> <label id="Attendees"></label>	
+		<hr>
+		<div id="video-list">
+	
+		<script src="assets/js/operator.js"></script>
 </body>
 </html>

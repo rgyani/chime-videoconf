@@ -12,8 +12,7 @@ console.log(window.location.search);
 var urlParams = new URLSearchParams(window.location.search);
 
 // meetingId will be available if a user tries to join a meeting via a meeting URL
-meetingId = urlParams.get("meetingId");
-console.log(meetingId);
+meetingId = null
 
 // Generate a unique client Id for the user
 clientId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -28,32 +27,10 @@ const logger = new window.ChimeSDK.ConsoleLogger(
 
 const deviceController = new ChimeSDK.DefaultDeviceController(logger);
 
-// If meetingId is not available, then user is the meeting host.
-if (!meetingId) {
-	isMeetingHost = true;
-
-}
-
 var lblTitle = document.getElementById("lblTitle");
 var lblUser = document.getElementById("lblUser");
 var startButton = document.getElementById("start-button");
 var stopButton = document.getElementById("stop-button");
-var exitButton = document.getElementById("exit-button");
-
-if (isMeetingHost) {
-	lblTitle.innerText = "For Vehicle";
-	lblUser.innerText = "VIN";
-	startButton.innerText = "Start Meeting";
-	stopButton.style.display = "inline-block";
-} else {
-	lblTitle.innerText = "For Operator";
-	lblUser.innerText = "Operator";
-	startButton.innerText = "Join Meeting";
-	exitButton.style.display = "inline-block";
-	requestPath += `&meetingId=${meetingId}`;
-}
-
-startButton.style.display = "inline-block";
 
 // Create or Join Meeting
 async function doMeeting() {
@@ -79,7 +56,7 @@ async function doMeeting() {
 			method: "POST",
 			headers: new Headers(),
 			body: JSON.stringify({ 
-				action: (meetingId == null ? "NEW_MEETING": "JOIN_MEETING"), 
+				action: "NEW_MEETING", 
 				MEETING_ID: `${meetingId}`, USERNAME: `${userName}` })
 		});
 
@@ -98,14 +75,7 @@ async function doMeeting() {
 		console.log(attendeeId)
 
 		document.getElementById("meeting-Id").innerText = meetingId;
-		if (isMeetingHost) {
-			document.getElementById("meeting-link").innerText = window.location.href + "?meetingId=" + meetingId;
-		}
-		else
-		{
-			document.getElementById("meeting-link").innerText = window.location.href;
-		}
-
+		document.getElementById("meeting-link").innerText = window.location.href + "?meetingId=" + meetingId;
 		const configuration = new ChimeSDK.MeetingSessionConfiguration(
 			data.Info.Meeting,
 			data.Info.Attendee
@@ -308,11 +278,6 @@ function cleanup()
 window.addEventListener("DOMContentLoaded", () => {
 
 	startButton.addEventListener("click", doMeeting);
+	stopButton.addEventListener("click", stopMeeting);
 
-	if (isMeetingHost) {
-		stopButton.addEventListener("click", stopMeeting);
-	}
-	else {
-		exitButton.addEventListener("click", exitMeeting);
-	}
 });
