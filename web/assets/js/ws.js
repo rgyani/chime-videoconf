@@ -7,7 +7,7 @@ console.log(current_url.replace("operator", "index"));
 
 async function fetchMeetings() {
     const query = `query MyQuery {
-        allMeetings(fleet_operator: "UBER") {
+        allMeetings(from_time: "2024", to_time:"2025") {
           items {
             answer_time
             answered_by
