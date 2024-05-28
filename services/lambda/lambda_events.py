@@ -9,12 +9,15 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 import uuid
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
+from botocore.credentials import get_credentials
+from botocore.session import get_session
 import requests
 
 dynamodb_client = boto3.client("dynamodb")
 TABLE_NAME = "ravi-test-chime"  # os.environ["TABLE_NAME"]
 APPSYNC_API_ENDPOINT_URL = 'https://zndjfudjbjesrnmvedn2rvpoaa.appsync-api.eu-central-1.amazonaws.com/graphql'
-APPSYNC_API_KEY = 'da2-xy5anpjp35b67bwhlms4ym665m'
 
 
 def lambda_handler(event, context):
@@ -45,6 +48,7 @@ def add_attendee(event):
         AttributesToGet=[ 'id'],
     )
 
+    mutation = ""
     # if new item, then it is a new meeting being started
     # else the meeting has been answered by the operator
     if "Item" in response:
@@ -71,16 +75,6 @@ def add_attendee(event):
                 }
         }
         """.replace("MEETING_ID", meeting_id).replace("ANSWER_TIME", event_time).replace("ANSWERED_BY", user_id)
-
-        session = requests.Session()
-        response = session.request(
-            url=APPSYNC_API_ENDPOINT_URL,
-            method='POST',
-            headers={'x-api-key': APPSYNC_API_KEY},
-            json={'query': mutation}
-        )
-        print(response)
-
     else:
         print("New meeting")
         # dynamodb_client.put_item(
@@ -105,14 +99,27 @@ def add_attendee(event):
         }
         """.replace("MEETING_ID", meeting_id).replace("FLEET_OPERATOR", fleet_operator).replace("START_TIME", event_time).replace("STARTED_BY", user_id)
 
-        session = requests.Session()
-        response = session.request(
-            url=APPSYNC_API_ENDPOINT_URL,
-            method='POST',
-            headers={'x-api-key': APPSYNC_API_KEY},
-            json={'query': mutation}
-        )
-        print(response)
+   # Get AWS credentials
+    session = get_session()
+    credentials = get_credentials(session).get_frozen_credentials()
+    # Create AWS request
+    request = AWSRequest(method="POST", url=APPSYNC_API_ENDPOINT_URL, data=json.dumps({"query": mutation}))
+    SigV4Auth(credentials, "appsync", session.get_config_variable("region")).add_auth(request)
+
+     # Convert the request to a format compatible with requests library
+    prepared_request = requests.Request(
+        method=request.method,
+        url=request.url,
+        headers=dict(request.headers.items()),
+        data=request.body
+    ).prepare()
+
+    # Make the HTTP POST request
+    response = requests.Session().send(prepared_request)
+
+    # Parse and return the response
+    response_data = response.json()
+    print(response_data)
 
 def meeting_ended(event):
     meeting_id = event["detail"]["meetingId"]
@@ -132,37 +139,41 @@ def meeting_ended(event):
 
     )
 
-    # if new item, then it is a new meeting being started
-    # else the meeting has been answered by the operator
-    if "Item" in response:
-        # dynamodb_client.update_item(
-        #     TableName=TABLE_NAME,
-        #     Key={
-        #         'id': {'S': meeting_id},
-        #     },
-        #     UpdateExpression='SET end_time = :end_time',
-        #     ExpressionAttributeValues={
-        #         ':end_time': {'S': event_time},
-        #     }
-        # )
-        mutation = """mutation MyMutation {
-                endMeeting(input: {id: "MEETING_ID", end_time: "END_TIME"}) {
-                    answer_time
-                    answered_by
-                    end_time
-                    fleet_operator
-                    id
-                    start_time
-                    started_by
-                }
+    # if meeting not found, this has already been removed from DB
+    if "Item" not in response:
+        return
+    
+    mutation = """mutation MyMutation {
+        endMeeting(input: {id: "MEETING_ID", end_time: "END_TIME"}) {
+            answer_time
+            answered_by
+            end_time
+            fleet_operator
+            id
+            start_time
+            started_by
         }
-        """.replace("MEETING_ID", meeting_id).replace("END_TIME", event_time)
+    }""".replace("MEETING_ID", meeting_id).replace("END_TIME", event_time)
+    
 
-        session = requests.Session()
-        response = session.request(
-            url=APPSYNC_API_ENDPOINT_URL,
-            method='POST',
-            headers={'x-api-key': APPSYNC_API_KEY},
-            json={'query': mutation}
-        )
-        print(response)
+      # Get AWS credentials
+    session = get_session()
+    credentials = get_credentials(session).get_frozen_credentials()
+    # Create AWS request
+    request = AWSRequest(method="POST", url=APPSYNC_API_ENDPOINT_URL, data=json.dumps({"query": mutation}))
+    SigV4Auth(credentials, "appsync", session.get_config_variable("region")).add_auth(request)
+
+     # Convert the request to a format compatible with requests library
+    prepared_request = requests.Request(
+        method=request.method,
+        url=request.url,
+        headers=dict(request.headers.items()),
+        data=request.body
+    ).prepare()
+
+    # Make the HTTP POST request
+    response = requests.Session().send(prepared_request)
+
+    # Parse and return the response
+    response_data = response.json()
+    print(response_data)
