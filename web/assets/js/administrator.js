@@ -9,12 +9,13 @@ async function fetchMeetings() {
     const query = `query MyQuery {
         allMeetings(from_time: "2024", to_time:"2025") {
           items {
+            id
             answer_time
             answered_by
-            id
             start_time
             fleet_operator
             started_by
+            end_time
           }
         }
       }`;
@@ -30,7 +31,7 @@ async function fetchMeetings() {
     });
 
     const responseBody = await response.json();
-    // console.log(responseBody);
+    console.log(responseBody);
 
     const tableBody = document.querySelector('#itemsTable tbody');
 
