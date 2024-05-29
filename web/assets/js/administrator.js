@@ -69,7 +69,7 @@ async function fetchMeetings() {
 }
 
 // Function to create a WebSocket connection and handle the subscription
-async function startSubscription() {
+function startSubscription() {
     const wss_url = MEETINGS_SERVICE.replace('https', 'wss').replace('appsync-api', 'appsync-realtime-api');
     const host = MEETINGS_SERVICE.replace('https://', '').replace('/graphql', '');
 

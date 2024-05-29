@@ -1,0 +1,16 @@
+{
+    "version" : "2018-05-29",
+    "operation" : "UpdateItem",
+    "key" : {
+        "id" : { "S" : "${context.arguments.input.id}" }
+    },
+    "update": {
+        "expression" : "SET #end_time = :end_time",
+        "expressionNames": {
+            "#end_time" : "end_time",
+        },
+        "expressionValues" : {
+            ":end_time" : { "S": "${context.arguments.input.end_time}" }
+        }
+    }
+}

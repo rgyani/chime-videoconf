@@ -1,0 +1,23 @@
+{
+  "version": "2018-05-29",
+  "operation": "Query",
+  "index": "C-start_time-index",
+  "query": {
+    "expression": "#C = :c AND #start_time BETWEEN :from_time and :to_time",
+    "expressionNames": {
+      "#C": "C",
+      "#start_time": "start_time"
+    },
+    "expressionValues": {
+      ":c": {
+        "S": "C"
+      },
+      ":from_time": {
+        "S": "${ctx.args.from_time}"
+      },
+      ":to_time": {
+        "S": "${ctx.args.to_time}"
+      }
+    }
+  }
+}

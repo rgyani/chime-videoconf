@@ -1,39 +1,36 @@
 resource "aws_dynamodb_table" "tbl_meetings" {
-  name         = "Meetings"
+  name         = "meetings"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
 
   attribute {
-    name = "answer_time"
-    type = "S"
-  }
-
-  attribute {
-    name = "answer_time"
+    name = "id"
     type = "S"
   }
   attribute {
-    name = "GameTitle"
+    name = "start_time"
     type = "S"
   }
-
   attribute {
-    name = "TopScore"
-    type = "N"
+    name = "fleet_operator"
+    type = "S"
   }
-
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
+  attribute {
+    name = "C"
+    type = "S"
   }
 
   global_secondary_index {
-    name               = "GameTitleIndex"
-    hash_key           = "GameTitle"
-    range_key          = "TopScore"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["UserId"]
+    name            = "C-start_time-index"
+    hash_key        = "C"
+    range_key       = "start_time"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "fleet_operator-start_time-index"
+    hash_key        = "fleet_operator"
+    range_key       = "start_time"
+    projection_type = "ALL"
   }
 }

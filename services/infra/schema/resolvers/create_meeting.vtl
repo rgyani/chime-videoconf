@@ -1,0 +1,7 @@
+#set($dummy = $ctx.args.input.put("C", "C"))
+{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "key": { "id": { "S": "${context.arguments.input.id}" } },
+  "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input),
+}

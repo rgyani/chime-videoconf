@@ -16,9 +16,11 @@ from botocore.session import get_session
 import requests
 
 dynamodb_client = boto3.client("dynamodb")
-TABLE_NAME = "ravi-test-chime"  # os.environ["TABLE_NAME"]
-APPSYNC_API_ENDPOINT_URL = 'https://zndjfudjbjesrnmvedn2rvpoaa.appsync-api.eu-central-1.amazonaws.com/graphql'
+# TABLE_NAME = "ravi-test-chime"  # os.environ["TABLE_NAME"]
+# APPSYNC_API_ENDPOINT_URL = 'https://zndjfudjbjesrnmvedn2rvpoaa.appsync-api.eu-central-1.amazonaws.com/graphql'
 
+TABLE_NAME = os.environ["TABLE_NAME"]
+APPSYNC_API_ENDPOINT_URL = os.environ["APPSYNC_API_ENDPOINT_URL"]
 
 def lambda_handler(event, context):
     print(event)
@@ -47,7 +49,7 @@ def add_attendee(event):
         },
         AttributesToGet=[ 'id'],
     )
-
+    
     mutation = ""
     # if new item, then it is a new meeting being started
     # else the meeting has been answered by the operator

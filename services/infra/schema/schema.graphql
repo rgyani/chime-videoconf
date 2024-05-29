@@ -1,0 +1,82 @@
+input CreateMeetingInput {
+	id: String!
+	fleet_operator: String!
+	start_time: String
+	started_by: String!
+}
+
+input EndMeetingInput {
+	id: String!
+	end_time: String!
+}
+
+input JoinMeetingInput {
+	id: String!
+	answer_time: String!
+	answered_by: String!
+}
+
+type Meeting @aws_api_key
+@aws_iam {
+	id: String!
+	fleet_operator: String!
+	start_time: String
+	started_by: String
+	answer_time: String
+	answered_by: String
+	end_time: String
+}
+
+type MeetingList {
+	items: [Meeting]
+	nextToken: String
+}
+
+# Will be called from event-handling-lambda to create DB entries
+# This way subscriptions will be triggered
+# NOTE we are using @aws_iam permission, so only AWS resources like lambda can invoke this, not UI
+type Mutation {
+	createMeeting(input: CreateMeetingInput!): Meeting
+		@aws_iam
+	joinMeeting(input: JoinMeetingInput!): Meeting
+		@aws_iam
+	endMeeting(input: EndMeetingInput!): Meeting
+		@aws_iam
+}
+
+# Will be called by UI, note the parameters from_time and to_time are essential
+type Query {
+
+	# fetch details of one meeting
+	getMeeting(id: String!): Meeting
+	
+	# fetch all meetings, eg from device administrator screen within a time range
+	allMeetings(
+		from_time: String!,
+		to_time: String!,
+		limit: Int,
+		nextToken: String
+	): MeetingList
+
+	# fetch all meetings for an operator, eg from operator administrator screen within a time range
+	operatorMeetings(
+		fleet_operator: String!,
+		from_time: String!,
+		to_time: String!,
+		limit: Int,
+		nextToken: String
+	): MeetingList
+	unansweredMeetings(fleet_operator: String!): MeetingList
+}
+
+type Subscription {
+
+	# subscribe to new meeting events for a particular operator (eg from operator screen)
+	onNewMeeting(fleet_operator: String!): Meeting
+		@aws_subscribe(mutations: ["createMeeting"])
+	
+	
+	# subscribe to all meeting events (eg from device administrator screen)
+	onMeetingUpdate: Meeting
+		@aws_subscribe(mutations: ["createMeeting","joinMeeting","endMeeting"])
+}

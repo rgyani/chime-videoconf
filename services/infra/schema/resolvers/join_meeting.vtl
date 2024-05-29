@@ -1,0 +1,18 @@
+{
+    "version" : "2018-05-29",
+    "operation" : "UpdateItem",
+    "key" : {
+        "id" : { "S" : "${context.arguments.input.id}" }
+    },
+    "update": {
+        "expression" : "SET #answer_time = :answer_time, #answered_by = :answered_by",
+        "expressionNames": {
+            "#answer_time" : "answer_time",
+            "#answered_by" : "answered_by",
+        },
+        "expressionValues" : {
+            ":answer_time" : { "S": "${context.arguments.input.answer_time}" },
+            ":answered_by" : { "S": "${context.arguments.input.answered_by}" }
+        }
+    }
+}

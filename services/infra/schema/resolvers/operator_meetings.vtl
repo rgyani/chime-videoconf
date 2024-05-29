@@ -1,0 +1,17 @@
+{
+    "version" : "2018-05-29",
+    "operation" : "Query",
+    "index" : "fleet_operator-start_time-index",
+    "query" : {
+        "expression": "#fleet_operator = :fleet_operator AND #start_time BETWEEN :from_time and :to_time",
+        "expressionNames" : {
+			"#fleet_operator" : "fleet_operator",
+            "#start_time": "start_time"
+         },
+        "expressionValues" : {
+            ":fleet_operator" : {"S" : "${ctx.args.fleet_operator}"},
+            ":from_time": {"S": "${ctx.args.from_time}"},
+            ":to_time": {"S": "${ctx.args.to_time}"} 
+        }
+    }
+}

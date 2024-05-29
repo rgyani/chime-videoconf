@@ -1,0 +1,23 @@
+
+{
+    "version" : "2018-05-29",
+    "operation" : "Query",
+    "index" : "fleet_operator-start_time-index",
+    "query" : {
+        "expression": "#fleet_operator = :fleet_operator AND #start_time > :from_time",
+        "expressionNames" : {
+			"#fleet_operator" : "fleet_operator",
+            "#start_time": "start_time"
+         },
+        "expressionValues" : {
+            ":fleet_operator" : {"S" : "${ctx.args.fleet_operator}"},
+            ":from_time": {"S": "$util.time.nowFormatted("yyyy-MM-dd")"},
+        }
+    },
+    "scanIndexForward" : false,
+    ## "consistentRead" : true,
+    "filter" : {
+    "expression" : "attribute_not_exists(answer_time) and attribute_not_exists(end_time)",
+    "expressionValues" : {},
+  }
+}
